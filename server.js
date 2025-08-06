@@ -1,13 +1,13 @@
-const express = require("express");
-const cors = require("cors");
-const axios = require("axios");
+import express from "express";
+import cors from "cors";
+import axios from "axios";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
-const API_KEY = "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"; // replace with your actual OpenRouter key
+const API_KEY = "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"; // Replace with your OpenRouter key
 
 app.post("/ask", async (req, res) => {
   const prompt = req.body.prompt;
@@ -21,7 +21,7 @@ app.post("/ask", async (req, res) => {
       },
       {
         headers: {
-          "Authorization": `Bearer ${API_KEY}`,
+          Authorization: `Bearer ${API_KEY}`,
           "Content-Type": "application/json",
         },
       }
