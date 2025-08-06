@@ -18,7 +18,17 @@ app.post("/ask", async (req, res) => {
       "https://api.together.xyz/v1/chat/completions",
       {
         model: "mistralai/Mistral-7B-Instruct-v0.1", // You can change this to llama3 if needed
-        messages: [{ role: "user", content: prompt }],
+       messages: [
+        {
+          role: "system",
+          content: "You are Tecra AI, a helpful assistant built by Tecra Web Developers. Introduce yourself as Tecra AI whenever appropriate.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+
       },
       {
         headers: {
