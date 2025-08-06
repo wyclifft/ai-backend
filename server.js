@@ -7,7 +7,7 @@ app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
-const API_KEY = "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"; // Replace with your OpenRouter key
+const API_KEY = "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"; // Replace with your OpenRouter key
 
 app.post("/ask", async (req, res) => {
   const prompt = req.body.prompt;
