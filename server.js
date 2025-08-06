@@ -11,6 +11,7 @@ const API_KEY = "sk-or-v1-7e5287b45b76974440a317bf33a082d53a4afc842a76a581e643d9
 
 app.post("/ask", async (req, res) => {
   const prompt = req.body.prompt;
+  console.log("📥 Prompt received:", prompt);
 
   try {
     const response = await axios.post(
@@ -27,14 +28,17 @@ app.post("/ask", async (req, res) => {
       }
     );
 
+    console.log("✅ OpenRouter response:", response.data);
+
     const reply = response.data.choices[0].message.content;
     res.json({ reply });
   } catch (err) {
-    console.error(err.response?.data || err.message);
-    res.status(500).json({ error: "No response from AI." });
+    const errorMessage = err.response?.data || err.message;
+    console.error("❌ Error talking to OpenRouter:", errorMessage);
+    res.status(500).json({ error: "No response from AI.", details: errorMessage });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
