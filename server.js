@@ -1,7 +1,8 @@
 import express from "express";
 import cors from "cors";
 import axios from "axios";
-import faqs from "./faq.js";
+import fs from "fs";
+import path from "path";
 
 const app = express();
 app.use(cors());
@@ -10,13 +11,28 @@ app.use(express.json());
 const PORT = process.env.PORT || 3000;
 const API_KEY = process.env.TOGETHER_API_KEY || "tgp_v1_your_real_key_here";
 
-// Function to check FAQ
+// Path to FAQs JSON
+const faqsFilePath = path.join(process.cwd(), "faqs.json");
+
+// Load FAQs
+function loadFAQs() {
+  return JSON.parse(fs.readFileSync(faqsFilePath, "utf8"));
+}
+
+// Save FAQs
+function saveFAQs(newFaqs) {
+  fs.writeFileSync(faqsFilePath, JSON.stringify(newFaqs, null, 2));
+}
+
+// FAQ search function
 function checkFAQ(message) {
+  const faqs = loadFAQs();
   const lowerMessage = message.toLowerCase();
-  const found = faqs.find(faq => lowerMessage.includes(faq.question));
+  const found = faqs.find(faq => lowerMessage.includes(faq.question.toLowerCase()));
   return found ? found.answer : null;
 }
 
+// AI route
 app.post("/ask", async (req, res) => {
   const prompt = req.body.prompt || "";
   console.log("📥 Prompt received:", prompt);
@@ -62,6 +78,20 @@ app.post("/ask", async (req, res) => {
     console.error("❌ Error from Together.ai:", errorMessage);
     res.status(500).json({ error: "AI error", details: errorMessage });
   }
+});
+
+// New routes to view & edit FAQs without redeploy
+app.get("/faqs", (req, res) => {
+  res.json(loadFAQs());
+});
+
+app.post("/faqs", (req, res) => {
+  const newFaqs = req.body;
+  if (!Array.isArray(newFaqs)) {
+    return res.status(400).json({ error: "FAQs must be an array" });
+  }
+  saveFAQs(newFaqs);
+  res.json({ message: "FAQs updated successfully" });
 });
 
 app.listen(PORT, () => {
