@@ -11,24 +11,24 @@ app.use(express.json());
 const PORT = process.env.PORT || 3000;
 const API_KEY = process.env.TOGETHER_API_KEY || "tgp_v1_your_real_key_here";
 
-// Path to FAQs JSON
-const faqsFilePath = path.join(process.cwd(), "faqs.json");
+// Path to faq JSON
+const faqFilePath = path.join(process.cwd(), "faq.json");
 
-// Load FAQs
-function loadFAQs() {
-  return JSON.parse(fs.readFileSync(faqsFilePath, "utf8"));
+// Load faq
+function loadfaq() {
+  return JSON.parse(fs.readFileSync(faqFilePath, "utf8"));
 }
 
-// Save FAQs
-function saveFAQs(newFaqs) {
-  fs.writeFileSync(faqsFilePath, JSON.stringify(newFaqs, null, 2));
+// Save faq
+function savefaq(newfaq) {
+  fs.writeFileSync(faqFilePath, JSON.stringify(newfaq, null, 2));
 }
 
 // FAQ search function
 function checkFAQ(message) {
-  const faqs = loadFAQs();
+  const faq = loadfaq();
   const lowerMessage = message.toLowerCase();
-  const found = faqs.find(faq => lowerMessage.includes(faq.question.toLowerCase()));
+  const found = faq.find(faq => lowerMessage.includes(faq.question.toLowerCase()));
   return found ? found.answer : null;
 }
 
@@ -80,18 +80,18 @@ app.post("/ask", async (req, res) => {
   }
 });
 
-// New routes to view & edit FAQs without redeploy
-app.get("/faqs", (req, res) => {
-  res.json(loadFAQs());
+// New routes to view & edit faq without redeploy
+app.get("/faq", (req, res) => {
+  res.json(loadfaq());
 });
 
-app.post("/faqs", (req, res) => {
-  const newFaqs = req.body;
-  if (!Array.isArray(newFaqs)) {
-    return res.status(400).json({ error: "FAQs must be an array" });
+app.post("/faq", (req, res) => {
+  const newfaq = req.body;
+  if (!Array.isArray(newfaq)) {
+    return res.status(400).json({ error: "faq must be an array" });
   }
-  saveFAQs(newFaqs);
-  res.json({ message: "FAQs updated successfully" });
+  savefaq(newfaq);
+  res.json({ message: "faq updated successfully" });
 });
 
 app.listen(PORT, () => {
