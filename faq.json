@@ -1,5 +1,4 @@
-// Pre-filled FAQ knowledge base for instant answers
-export default [
+[
   {
     question: "what is tecra ai",
     answer: "Tecra AI is a smart, conversational AI assistant created by Tecra Web Developers. It helps with web development, answering questions, and more."
