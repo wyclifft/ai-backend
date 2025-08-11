@@ -26,11 +26,20 @@ async function loadFAQ() {
   }
 }
 
-// FAQ search
+// FAQ search - fixed to loop over questions array
 function checkFAQ(message) {
-  const lowerMessage = message.toLowerCase();
-  const found = cachedFAQ.find(item => lowerMessage.includes(item.question.toLowerCase()));
-  return found ? found.answer : null;
+  if (!message) return null;
+  const lowerMessage = message.toLowerCase().trim();
+
+  for (const item of cachedFAQ) {
+    for (const q of item.questions) {
+      if (lowerMessage.includes(q.toLowerCase())) {
+        return item.answer;
+      }
+    }
+  }
+
+  return null; // no match
 }
 
 // AI route
