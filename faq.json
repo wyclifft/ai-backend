@@ -1,26 +1,65 @@
 [
   {
-    "question": "what is tecra ai",
-    "answer": "Tecra AI is a smart, conversational AI assistant created by Tecra Web Developers. It helps with web development, answering questions, and more."
+    "questions": [
+      "what is tecra ai",
+      "can you explain what tecra ai is",
+      "tell me about tecra ai",
+      "what does tecra ai do",
+      "explain tecra ai"
+      "who are you"
+    ],
+    "answer": "Tecra AI is a smart, conversational AI assistant developed by Tecra Web Developers. It helps users with web development queries, provides info about our services, and assists in answering questions related to technology and AI."
   },
   {
-    "question": "who are you",
-    "answer": "Tecra AI is a smart, conversational AI assistant created by Tecra Web Developers. It helps with web development, answering questions, and more."
+    "questions": [
+      "who created tecra ai",
+      "who is behind tecra ai",
+      "who made tecra ai",
+      "who developed tecra ai",
+      "who built tecra ai",
+      "who created you"
+    ],
+    "answer": "I was created by Wycliff, the CEO, and Janet, the CCEO of Tecra Web Developers, a Kenyan company specializing in web development and AI integrations."
   },
   {
-    "question": "who created tecra ai",
-    "answer": "Tecra AI was created by Wycliff CEO and CCEO Janet of Tecra Web Developers, a Kenyan-based company specializing in web development and AI integrations."
+    "questions": [
+      "how do i contact tecra web developers",
+      "what is the contact info for tecra web developers",
+      "how can i reach tecra web developers",
+      "contact details of tecra web developers",
+      "get in touch with tecra web developers",
+      "how do i contact them"
+    ],
+    "answer": "You can reach Tecra Web Developers by emailing tecrawebdev8@gmail.com or calling 0741899183. We are happy to assist with your inquiries."
   },
   {
-    "question": "how can i contact tecra web developers",
-    "answer": "You can contact Tecra Web Developers via email at wycliffmutethia8@gmail.com or call 0741899183."
+    "questions": [
+      "what services does tecra web developers offer",
+      "tell me about tecra web developers services",
+      "which services are provided by tecra web developers",
+      "what can tecra web developers do for me",
+      "services offered by tecra web developers"
+    ],
+    "answer": "Tecra Web Developers offers website design, backend development, e-commerce solutions, AI assistant integration, custom API development, and systems like employee attendance management."
   },
   {
-    "question": "what services do you offer",
-    "answer": "Tecra Web Developers offers website design, backend development, e-commerce solutions, AI assistants, and API integrations."
+    "questions": [
+      "where is tecra web developers located",
+      "what is the location of tecra web developers",
+      "where can i find tecra web developers",
+      "is tecra web developers local or international",
+      "tecra web developers address"
+    ],
+    "answer": "Tecra Web Developers is based in Kenya but serves clients worldwide through remote collaboration."
   },
   {
-    "question": "where are you located",
-    "answer": "Tecra Web Developers is located in Kenya but serves clients worldwide."
+    "questions": [
+      "do you build employee attendance systems",
+      "employee attendance system",
+      "can you create attendance management systems",
+      "do you develop systems for employee check-in",
+      "attendance tracking software"
+    ],
+    "answer": "Yes, Tecra Web Developers creates custom systems like employee attendance management solutions that include GPS check-in/out and seamless data tracking to improve workforce management."
   }
 ]
