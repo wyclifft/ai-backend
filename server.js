@@ -1,8 +1,6 @@
 import express from "express";
 import cors from "cors";
 import axios from "axios";
-import fs from "fs";
-import path from "path";
 
 const app = express();
 app.use(cors());
@@ -10,25 +8,25 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
 const API_KEY = process.env.TOGETHER_API_KEY || "tgp_v1_your_real_key_here";
+const FAQ_URL = "https://raw.githubusercontent.com/wyclifft/ai-backend/refs/heads/main/faq.json";
 
-// Path to faq JSON
-const faqFilePath = path.join(process.cwd(), "faq.json");
-
-// Load faq
-function loadfaq() {
-  return JSON.parse(fs.readFileSync(faqFilePath, "utf8"));
+// Load FAQ from GitHub
+async function loadFAQ() {
+  try {
+    const res = await fetch(FAQ_URL);
+    if (!res.ok) throw new Error(`Failed to load FAQ: ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    console.error("❌ Error loading FAQ:", err.message);
+    return [];
+  }
 }
 
-// Save faq
-function savefaq(newfaq) {
-  fs.writeFileSync(faqFilePath, JSON.stringify(newfaq, null, 2));
-}
-
-// FAQ search function
-function checkFAQ(message) {
-  const faq = loadfaq();
+// FAQ search
+async function checkFAQ(message) {
+  const faq = await loadFAQ();
   const lowerMessage = message.toLowerCase();
-  const found = faq.find(faq => lowerMessage.includes(faq.question.toLowerCase()));
+  const found = faq.find(item => lowerMessage.includes(item.question.toLowerCase()));
   return found ? found.answer : null;
 }
 
@@ -39,7 +37,7 @@ app.post("/ask", async (req, res) => {
 
   try {
     // 1️⃣ Check FAQ first
-    const faqAnswer = checkFAQ(prompt);
+    const faqAnswer = await checkFAQ(prompt);
     if (faqAnswer) {
       console.log("💡 FAQ match found, sending quick answer");
       return res.json({ reply: faqAnswer, source: "faq" });
@@ -80,20 +78,11 @@ app.post("/ask", async (req, res) => {
   }
 });
 
-// New routes to view & edit faq without redeploy
-app.get("/faq", (req, res) => {
-  res.json(loadfaq());
-});
-
-app.post("/faq", (req, res) => {
-  const newfaq = req.body;
-  if (!Array.isArray(newfaq)) {
-    return res.status(400).json({ error: "faq must be an array" });
-  }
-  savefaq(newfaq);
-  res.json({ message: "faq updated successfully" });
+// View current FAQ
+app.get("/faq", async (req, res) => {
+  res.json(await loadFAQ());
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
