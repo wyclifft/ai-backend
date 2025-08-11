@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import axios from "axios";
+import fetch from "node-fetch"; // npm install node-fetch
 
 const app = express();
 app.use(cors());
@@ -10,23 +11,25 @@ const PORT = process.env.PORT || 3000;
 const API_KEY = process.env.TOGETHER_API_KEY || "tgp_v1_your_real_key_here";
 const FAQ_URL = "https://raw.githubusercontent.com/wyclifft/ai-backend/refs/heads/main/faq.json";
 
-// Load FAQ from GitHub
+let cachedFAQ = [];
+
+// Load FAQ from GitHub and cache
 async function loadFAQ() {
   try {
     const res = await fetch(FAQ_URL);
     if (!res.ok) throw new Error(`Failed to load FAQ: ${res.status}`);
-    return await res.json();
+    cachedFAQ = await res.json();
+    console.log("✅ FAQ loaded from GitHub");
   } catch (err) {
     console.error("❌ Error loading FAQ:", err.message);
-    return [];
+    cachedFAQ = [];
   }
 }
 
 // FAQ search
-async function checkFAQ(message) {
-  const faq = await loadFAQ();
+function checkFAQ(message) {
   const lowerMessage = message.toLowerCase();
-  const found = faq.find(item => lowerMessage.includes(item.question.toLowerCase()));
+  const found = cachedFAQ.find(item => lowerMessage.includes(item.question.toLowerCase()));
   return found ? found.answer : null;
 }
 
@@ -37,9 +40,9 @@ app.post("/ask", async (req, res) => {
 
   try {
     // 1️⃣ Check FAQ first
-    const faqAnswer = await checkFAQ(prompt);
+    const faqAnswer = checkFAQ(prompt);
     if (faqAnswer) {
-      console.log("💡 FAQ match found, sending quick answer");
+      console.log("💡 FAQ match found");
       return res.json({ reply: faqAnswer, source: "faq" });
     }
 
@@ -67,7 +70,7 @@ app.post("/ask", async (req, res) => {
       }
     );
 
-    const reply = response.data.choices[0].message.content;
+    const reply = response.data.choices[0]?.message?.content || "No reply generated.";
     console.log("✅ Together.ai response:", reply);
     res.json({ reply, source: "together.ai" });
 
@@ -79,10 +82,15 @@ app.post("/ask", async (req, res) => {
 });
 
 // View current FAQ
-app.get("/faq", async (req, res) => {
-  res.json(await loadFAQ());
+app.get("/faq", (req, res) => {
+  res.json(cachedFAQ);
 });
 
-app.listen(PORT, () => {
+// Start server & load FAQ initially
+app.listen(PORT, async () => {
+  await loadFAQ();
   console.log(`🚀 Server running on port ${PORT}`);
 });
+
+// Optional: refresh FAQ every 15 minutes
+setInterval(loadFAQ, 15 * 60 * 1000);
