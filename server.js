@@ -1,177 +1,76 @@
 import express from "express";
+import fetch from "node-fetch";
+import dotenv from "dotenv";
 import cors from "cors";
-import axios from "axios";
-import fetch from "node-fetch"; // npm install node-fetch
 
+dotenv.config();
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const PORT = process.env.PORT || 3000;
-const API_KEY = process.env.TOGETHER_API_KEY;
-const FAQ_URL = "https://raw.githubusercontent.com/wyclifft/ai-backend/refs/heads/main/faq.json";
+const TOGETHER_API_KEY = process.env.TOGETHER_API_KEY;
 
-// Fail fast if API key is missing or placeholder
-if (!API_KEY || API_KEY.startsWith("tgp_v1_your_real_key_here")) {
-  console.error("❌ TOGETHER_API_KEY missing or invalid. Set it in Render → Environment Variables.");
-  process.exit(1);
-}
+app.post("/api/upgrade", async (req, res) => {
+  const { prompt } = req.body;
 
-let cachedFAQ = [];
-
-// Load FAQ from GitHub and cache
-async function loadFAQ() {
-  try {
-    const res = await fetch(FAQ_URL);
-    if (!res.ok) throw new Error(`Failed to load FAQ: ${res.status}`);
-    cachedFAQ = await res.json();
-    console.log("✅ FAQ loaded from GitHub");
-  } catch (err) {
-    console.error("❌ Error loading FAQ:", err.message);
-    cachedFAQ = [];
+  if (!prompt) {
+    return res.status(400).json({ error: "Missing prompt" });
   }
-}
-
-// FAQ search
-function checkFAQ(message) {
-  if (!message) return null;
-  const lowerMessage = message.toLowerCase().trim();
-
-  for (const item of cachedFAQ) {
-    for (const q of item.questions) {
-      if (lowerMessage.includes(q.toLowerCase())) {
-        return item.answer;
-      }
-    }
-  }
-  return null;
-}
-
-// Chat route
-app.post("/ask", async (req, res) => {
-  const prompt = req.body.prompt || "";
-  console.log("📥 Prompt received:", prompt);
 
   try {
-    const faqAnswer = checkFAQ(prompt);
-    if (faqAnswer) {
-      console.log("💡 FAQ match found");
-      return res.json({ reply: faqAnswer, source: "faq" });
-    }
-
-    const response = await axios.post(
-      "https://api.together.xyz/v1/chat/completions",
-      {
-        model: "mistralai/Mistral-7B-Instruct-v0.1",
-        messages: [
-          {
-            role: "system",
-            content: "You are Tecra AI, a helpful assistant built by Tecra Web Developers."
-          },
-          { role: "user", content: prompt }
-        ]
+    const response = await fetch("https://api.together.xyz/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${TOGETHER_API_KEY}`,
+        "Content-Type": "application/json",
       },
-      {
-        headers: {
-          Authorization: `Bearer ${API_KEY}`,
-          "Content-Type": "application/json"
-        }
-      }
-    );
-
-    const reply = response.data.choices[0]?.message?.content || "No reply generated.";
-    console.log("✅ Together.ai response sent");
-    res.json({ reply, source: "together.ai" });
-
-  } catch (err) {
-    console.error("❌ Error from Together.ai:", err.response?.data || err.message);
-    res.status(500).json({ error: "AI error", details: err.response?.data || err.message });
-  }
-});
-
-// View current FAQ
-app.get("/faq", (req, res) => {
-  res.json(cachedFAQ);
-});
-
-// Website generation route
-app.post("/generate-site", async (req, res) => {
-  const prompt = req.body.prompt || "";
-  console.log("🌐 Website generation request:", prompt);
-
-  try {
-    const response = await axios.post(
-      "https://api.together.xyz/v1/chat/completions",
-      {
-        model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
+      body: JSON.stringify({
+        model: "mistral-7b-instruct", // Can upgrade to a stronger Together model later
         messages: [
           {
             role: "system",
             content: `
-You are an elite, award-winning senior web designer and developer.
-Your task is to create **pixel-perfect, premium-quality, and fully responsive websites** in pure HTML, CSS, and JavaScript.
+You are an elite full-stack AI developer with the combined skills of a senior web designer, backend engineer, and DevOps specialist.
 
-STRICT REQUIREMENTS:
-1. **HTML Structure**
-   - Must include <!DOCTYPE html>, <html>, <head>, and <body>
-   - Title must match the theme
-   - Link a stunning **Google Font** for headings and body
+Your task:
+- Upgrade **both frontend and backend** code while maintaining full compatibility with the existing project structure.
+- Do NOT create new files unless explicitly told.
+- Do NOT break existing APIs or frontend functionality.
+- Respect all current sensitive keys, URLs, and configurations.
+- Follow best practices in HTML, CSS, JavaScript, and Node.js.
 
-2. **Styling (CSS inside <style>)**
-   - Mobile-first responsive design using Flexbox & CSS Grid
-   - Elegant animations, smooth hover effects, and transitions
-   - Premium gradients and modern color palettes
-   - Consistent spacing, shadows, and clean layout
-   - Make it visually stunning without over-cluttering
+Frontend upgrade rules:
+1. Ensure **pixel-perfect**, responsive, and modern design.
+2. Use **mobile-first** responsive design principles.
+3. Enhance UI with animations, smooth interactions, and premium color palettes.
+4. Keep structure clean and semantic.
+5. Avoid unnecessary external libraries.
 
-3. **Content**
-   - Include a **hero section** with a large heading, subheading, and call-to-action button(s)
-   - At least 3 visually distinct sections
-   - Use **images** from Unsplash placeholders:
-     Example: https://source.unsplash.com/800x600/?<keyword>
-   - Images must be relevant to the theme (e.g., tech, nature, business)
+Backend upgrade rules:
+1. Improve performance, maintainability, and security.
+2. Keep existing API routes intact.
+3. Optimize fetch requests and error handling.
+4. Write clean, readable, well-structured code.
 
-4. **JavaScript (inside <script>)**
-   - Add small interactive features (e.g., smooth scroll, button animations)
-   - No external libraries except Google Fonts
-
-5. **Output Rules**
-   - Output only the full HTML code
-   - No explanations, no markdown, no comments
-   - Must look professional on all devices (desktop, tablet, mobile)
+Output rules:
+- Respond with ONLY the upgraded full code.
+- No extra explanations or markdown formatting.
             `
           },
-          {
-            role: "user",
-            content: prompt
-          }
-        ]
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.TOGETHER_API_KEY}`,
-          "Content-Type": "application/json"
-        }
-      }
-    );
+          { role: "user", content: prompt }
+        ],
+        max_tokens: 2000,
+        temperature: 0.7,
+      }),
+    });
 
-    const html = response.data.choices[0]?.message?.content || "<h1>Could not generate site</h1>";
-    console.log("✅ Website code generated");
-
-    res.json({ html });
+    const data = await response.json();
+    res.json(data);
   } catch (err) {
-    const errorMessage = err.response?.data || err.message;
-    console.error("❌ Error generating site:", errorMessage);
-    res.status(500).json({ error: "Site generation failed", details: errorMessage });
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
-
-// Start server & load FAQ initially
-app.listen(PORT, async () => {
-  await loadFAQ();
-  console.log(`🚀 Server running on port ${PORT}`);
-});
-
-// Refresh FAQ every 15 minutes
-setInterval(loadFAQ, 15 * 60 * 1000);
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
