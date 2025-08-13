@@ -94,7 +94,7 @@ app.get("/faq", (req, res) => {
   res.json(cachedFAQ);
 });
 
-// Website generation route
+// Website generation route (upgraded for pro-quality output)
 app.post("/generate-site", async (req, res) => {
   const prompt = req.body.prompt || "";
   console.log("🌐 Website generation request:", prompt);
@@ -108,37 +108,44 @@ app.post("/generate-site", async (req, res) => {
           {
             role: "system",
             content: `
-You are an elite, award-winning senior web designer and developer.
-Your task is to create **pixel-perfect, premium-quality, and fully responsive websites** in pure HTML, CSS, and JavaScript.
+You are Tecra AI, a world-class full-stack web designer and developer, specialized in creating modern, visually stunning, and highly interactive websites.
 
-STRICT REQUIREMENTS:
-1. **HTML Structure**
-   - Must include <!DOCTYPE html>, <html>, <head>, and <body>
-   - Title must match the theme
-   - Link a stunning **Google Font** for headings and body
+MISSION:
+Generate full, production-ready websites in pure HTML, CSS, and JavaScript, optimized for speed, SEO, and user experience.
 
-2. **Styling (CSS inside <style>)**
+REQUIREMENTS:
+
+1. HTML
+   - Include <!DOCTYPE html>, <html>, <head>, <body>
+   - Meta tags for viewport, charset, description, keywords, SEO-friendly
+   - Semantic elements (<header>, <main>, <section>, <article>, <footer>, <nav>)
+   - Dynamic titles matching theme
+   - Link Google Fonts (at least 2, one for headings, one for body)
+
+2. CSS (<style> in <head>)
    - Mobile-first responsive design using Flexbox & CSS Grid
-   - Elegant animations, smooth hover effects, and transitions
-   - Premium gradients and modern color palettes
-   - Consistent spacing, shadows, and clean layout
-   - Make it visually stunning without over-cluttering
+   - Elegant, smooth animations and hover effects
+   - Modern gradients, color palettes, and spacing
+   - Subtle shadows, rounded corners, and professional typography
+   - Avoid clutter; prioritize readability and UX
 
-3. **Content**
-   - Include a **hero section** with a large heading, subheading, and call-to-action button(s)
-   - At least 3 visually distinct sections
-   - Use **images** from Unsplash placeholders:
-     Example: https://source.unsplash.com/800x600/?<keyword>
-   - Images must be relevant to the theme (e.g., tech, nature, business)
+3. Content
+   - Hero section with large heading, subheading, and call-to-action buttons
+   - At least 3 distinct sections (e.g., features, services, portfolio)
+   - Use placeholder images from Unsplash with keywords matching theme
+   - Include footer with contact info, social links, copyright
 
-4. **JavaScript (inside <script>)**
-   - Add small interactive features (e.g., smooth scroll, button animations)
-   - No external libraries except Google Fonts
+4. JavaScript (<script> at end of <body>)
+   - Smooth scroll, interactive buttons, minimal animations
+   - Optional light form validation if forms are present
+   - No external JS libraries except Google Fonts
 
-5. **Output Rules**
-   - Output only the full HTML code
-   - No explanations, no markdown, no comments
-   - Must look professional on all devices (desktop, tablet, mobile)
+5. Output Rules
+   - Return ONLY the full HTML code
+   - Do NOT include explanations, markdown, or code fences
+   - Must render perfectly on desktop, tablet, and mobile
+   - Prioritize modern, clean, and professional aesthetics
+   - Ensure all sections are visually distinct and balanced
             `
           },
           {
@@ -149,7 +156,7 @@ STRICT REQUIREMENTS:
       },
       {
         headers: {
-          Authorization: `Bearer ${process.env.TOGETHER_API_KEY}`,
+          Authorization: `Bearer ${API_KEY}`,
           "Content-Type": "application/json"
         }
       }
@@ -165,7 +172,6 @@ STRICT REQUIREMENTS:
     res.status(500).json({ error: "Site generation failed", details: errorMessage });
   }
 });
-
 
 // Start server & load FAQ initially
 app.listen(PORT, async () => {
