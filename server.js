@@ -95,6 +95,50 @@ app.get("/faq", (req, res) => {
   res.json(cachedFAQ);
 });
 
+// Website generation route
+app.post("/generate-site", async (req, res) => {
+  const prompt = req.body.prompt || "";
+  console.log("🌐 Website generation request:", prompt);
+
+  try {
+    const response = await axios.post(
+      "https://api.together.xyz/v1/chat/completions",
+      {
+        model: "mistralai/Mistral-7B-Instruct-v0.1",
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are an AI that generates complete HTML, CSS, and JavaScript code for websites. " +
+              "Always respond with a full, valid HTML document including <html>, <head>, and <body> tags. " +
+              "If the user asks for a design, include embedded <style> and <script> blocks inside the HTML. " +
+              "Do NOT include markdown formatting or triple backticks."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ]
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${API_KEY}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+    const html = response.data.choices[0]?.message?.content || "<h1>Could not generate site</h1>";
+    console.log("✅ Website code generated");
+
+    res.json({ html });
+  } catch (err) {
+    const errorMessage = err.response?.data || err.message;
+    console.error("❌ Error generating site:", errorMessage);
+    res.status(500).json({ error: "Site generation failed", details: errorMessage });
+  }
+});
+
 // Start server & load FAQ initially
 app.listen(PORT, async () => {
   await loadFAQ();
