@@ -1,3 +1,13 @@
+// Load environment variables only in local development
+if (process.env.NODE_ENV !== 'production') {
+  try {
+    await import('dotenv').then(dotenv => dotenv.config());
+    console.log("✅ dotenv loaded (local environment)");
+  } catch (err) {
+    console.warn("⚠️ dotenv not found - skipping (production)");
+  }
+}
+
 import express from "express";
 import fetch from "node-fetch";
 import dotenv from "dotenv";
