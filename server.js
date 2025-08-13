@@ -8,8 +8,14 @@ app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
-const API_KEY = process.env.TOGETHER_API_KEY || "tgp_v1_your_real_key_here";
+const API_KEY = process.env.TOGETHER_API_KEY;
 const FAQ_URL = "https://raw.githubusercontent.com/wyclifft/ai-backend/refs/heads/main/faq.json";
+
+// Fail fast if API key is missing or placeholder
+if (!API_KEY || API_KEY.startsWith("tgp_v1_your_real_key_here")) {
+  console.error("❌ TOGETHER_API_KEY missing or invalid. Set it in Render → Environment Variables.");
+  process.exit(1);
+}
 
 let cachedFAQ = [];
 
@@ -26,7 +32,7 @@ async function loadFAQ() {
   }
 }
 
-// FAQ search - fixed to loop over questions array
+// FAQ search
 function checkFAQ(message) {
   if (!message) return null;
   const lowerMessage = message.toLowerCase().trim();
@@ -38,24 +44,21 @@ function checkFAQ(message) {
       }
     }
   }
-
-  return null; // no match
+  return null;
 }
 
-// AI route
+// Chat route
 app.post("/ask", async (req, res) => {
   const prompt = req.body.prompt || "";
   console.log("📥 Prompt received:", prompt);
 
   try {
-    // 1️⃣ Check FAQ first
     const faqAnswer = checkFAQ(prompt);
     if (faqAnswer) {
       console.log("💡 FAQ match found");
       return res.json({ reply: faqAnswer, source: "faq" });
     }
 
-    // 2️⃣ No match → send to Together.ai
     const response = await axios.post(
       "https://api.together.xyz/v1/chat/completions",
       {
@@ -63,12 +66,9 @@ app.post("/ask", async (req, res) => {
         messages: [
           {
             role: "system",
-            content: "You are Tecra AI, a helpful assistant built by Tecra Web Developers. Introduce yourself as Tecra AI whenever appropriate."
+            content: "You are Tecra AI, a helpful assistant built by Tecra Web Developers."
           },
-          {
-            role: "user",
-            content: prompt
-          }
+          { role: "user", content: prompt }
         ]
       },
       {
@@ -80,13 +80,12 @@ app.post("/ask", async (req, res) => {
     );
 
     const reply = response.data.choices[0]?.message?.content || "No reply generated.";
-    console.log("✅ Together.ai response:", reply);
+    console.log("✅ Together.ai response sent");
     res.json({ reply, source: "together.ai" });
 
   } catch (err) {
-    const errorMessage = err.response?.data || err.message;
-    console.error("❌ Error from Together.ai:", errorMessage);
-    res.status(500).json({ error: "AI error", details: errorMessage });
+    console.error("❌ Error from Together.ai:", err.response?.data || err.message);
+    res.status(500).json({ error: "AI error", details: err.response?.data || err.message });
   }
 });
 
@@ -104,15 +103,43 @@ app.post("/generate-site", async (req, res) => {
     const response = await axios.post(
       "https://api.together.xyz/v1/chat/completions",
       {
-        model: "mistralai/Mistral-7B-Instruct-v0.1",
+        model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
         messages: [
           {
             role: "system",
-            content:
-              "You are an AI that generates complete HTML, CSS, and JavaScript code for websites. " +
-              "Always respond with a full, valid HTML document including <html>, <head>, and <body> tags. " +
-              "If the user asks for a design, include embedded <style> and <script> blocks inside the HTML. " +
-              "Do NOT include markdown formatting or triple backticks."
+            content: `
+You are an elite, award-winning senior web designer and developer.
+Your task is to create **pixel-perfect, premium-quality, and fully responsive websites** in pure HTML, CSS, and JavaScript.
+
+STRICT REQUIREMENTS:
+1. **HTML Structure**
+   - Must include <!DOCTYPE html>, <html>, <head>, and <body>
+   - Title must match the theme
+   - Link a stunning **Google Font** for headings and body
+
+2. **Styling (CSS inside <style>)**
+   - Mobile-first responsive design using Flexbox & CSS Grid
+   - Elegant animations, smooth hover effects, and transitions
+   - Premium gradients and modern color palettes
+   - Consistent spacing, shadows, and clean layout
+   - Make it visually stunning without over-cluttering
+
+3. **Content**
+   - Include a **hero section** with a large heading, subheading, and call-to-action button(s)
+   - At least 3 visually distinct sections
+   - Use **images** from Unsplash placeholders:
+     Example: https://source.unsplash.com/800x600/?<keyword>
+   - Images must be relevant to the theme (e.g., tech, nature, business)
+
+4. **JavaScript (inside <script>)**
+   - Add small interactive features (e.g., smooth scroll, button animations)
+   - No external libraries except Google Fonts
+
+5. **Output Rules**
+   - Output only the full HTML code
+   - No explanations, no markdown, no comments
+   - Must look professional on all devices (desktop, tablet, mobile)
+            `
           },
           {
             role: "user",
@@ -122,7 +149,7 @@ app.post("/generate-site", async (req, res) => {
       },
       {
         headers: {
-          Authorization: `Bearer ${API_KEY}`,
+          Authorization: `Bearer ${process.env.TOGETHER_API_KEY}`,
           "Content-Type": "application/json"
         }
       }
@@ -139,11 +166,12 @@ app.post("/generate-site", async (req, res) => {
   }
 });
 
+
 // Start server & load FAQ initially
 app.listen(PORT, async () => {
   await loadFAQ();
   console.log(`🚀 Server running on port ${PORT}`);
 });
 
-// Optional: refresh FAQ every 15 minutes
+// Refresh FAQ every 15 minutes
 setInterval(loadFAQ, 15 * 60 * 1000);
